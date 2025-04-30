@@ -1,0 +1,12 @@
+.DS_Store
+/.cache
+/**/build
+/.idea/
+CMakeDoxyfile.in
+CMakeDoxygenDefaults.cmake
+DartConfiguration.tcl
+__pycache__
+/.vscode
+/.devcontainer
+*.dSYM
+a.out
