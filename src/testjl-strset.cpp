@@ -6,6 +6,8 @@
 #include <iostream>
 #include <jsonlogic/logic.hpp>
 #include <set>
+#include <sstream>
+#include <string>
 #include <vector>
 
 #include "faker-cxx/faker.h"
@@ -26,13 +28,14 @@ int main(int argc, const char **argv) {
   std::cout << "N: " << N << std::endl;
 
   faker::setSeed(SEED);
-  std::string expr_str_xy =
-      // R"({"some":[{"var": "y"},{"==":[{"var":""},{"var": "x"}]}]})";  // x in
-      // y
-      R"({"some":[{"var": "y"},{">":["azz", {"var": "x"}]}]})";  // "bbb"
-                                                                 // in y
-  // std::string expr_str_xy = R"({"in":[{"var": "x"},{"var": "y"}]})";  // x in
-  // y std::string expr_str_set_contains = R"({"==":[1,2]})";
+  // std::string expr_str_xy =
+  // R"({"some":[{"var": "y"},{"==":[{"var":""},{"var": "x"}]}]})";  // x in
+  // y
+  // R"({"some":[{"var": "y"},{">":["azz", {"var": "x"}]}]})";  // "bbb"
+
+  // in y
+  // std::string expr_str_xy = R"({"in":[{"var": "x"},{"var": "y"}]})";  //
+  // x in y std::string expr_str_set_contains = R"({"==":[1,2]})";
 
   std::set<std::string> sset;
   std::vector<std::string> ss;
@@ -47,20 +50,25 @@ int main(int argc, const char **argv) {
     ss.push_back(faker::string::fromCharacters(CHARS, STRLEN));
   }
 
-  auto jv_xy = boost::json::parse(expr_str_xy);
-  auto data_obj = boost::json::object();
-
   // auto svec_json = boost::json::array(svec.begin(), svec.end());
   auto svec_json = boost::json::array(RINGER.begin(), RINGER.end());
+
+  std::ostringstream expr_str_xy_o;
+
+  expr_str_xy_o << R"({"membership":[)" << svec_json << R"(, {"var":"x"}]})";
+  std::string expr_str_xy = expr_str_xy_o.str();
+
+  std::cout << expr_str_xy << std::endl;
+  auto jv_xy = boost::json::parse(expr_str_xy);
+
+  auto data_obj = boost::json::object();
   size_t matches = 0;
   size_t j = 0;
   auto start = std::chrono::steady_clock::now();
   for (size_t i = 0; i < N; ++i) {
     data_obj["x"] = ss[i];
-    data_obj["y"] = svec_json;
     if (i < 5) {
-      std::cout << "x: " << data_obj["x"] << ", y: " << data_obj["y"]
-                << std::endl;
+      std::cout << "x: " << data_obj["x"] << std::endl;
     }
     auto data = boost::json::value_from(data_obj);
     auto v_xy = jsonlogic::apply(jv_xy, data);

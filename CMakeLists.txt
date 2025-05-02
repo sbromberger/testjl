@@ -5,7 +5,7 @@
 
 # Works with 3.11 and tested through 3.15 (not tested yet)
 cmake_minimum_required(VERSION 3.14)
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+# list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(ALLOW_DUPLICATE_CUSTOM_TARGETS TRUE)
 
 # Avoid warning about DOWNLOAD_EXTRACT_TIMESTAMP in CMake 3.24:
@@ -45,23 +45,23 @@ endif()
 # Boost
 # find_package(Boost 1.83 REQUIRED COMPONENTS)
 
-#
-# Boost
+
+# Download and build Boost::json
 set(BOOST_URL 
     "https://github.com/boostorg/boost/releases/download/boost-1.87.0/boost-1.87.0-cmake.tar.gz" 
     CACHE STRING "URL to fetch Boost tarball")
 
-#
-# Boost
+
+set(BOOST_INCLUDE_LIBRARIES json)
+
 FetchContent_Declare(
     Boost 
-    URL ${BOOST_URL}
-)
-set(BOOST_INCLUDE_LIBRARIES json)
+    URL ${BOOST_URL})
 FetchContent_MakeAvailable(Boost)
 
-set(Boost_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/boost-install) # needed for jsonlogic
 
+# set(Boost_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/boost-install) # needed for jsonlogic
+set(BUILD_TESTING OFF) # Disable Faker tests
 FetchContent_Declare(faker
     GIT_REPOSITORY https://github.com/cieslarmichal/faker-cxx.git
     GIT_TAG main
@@ -71,7 +71,7 @@ FetchContent_MakeAvailable(faker)
 
 FetchContent_Declare(jsonlogic
     GIT_REPOSITORY https://github.com/LLNL/jsonlogic.git
-    GIT_TAG jsonlogic-variant_api
+    GIT_TAG master
     SOURCE_SUBDIR cpp
 )
 FetchContent_MakeAvailable(jsonlogic)
@@ -93,24 +93,23 @@ add_executable(testjl-2ints src/testjl-2ints.cpp)
 add_executable(testjl-strset src/testjl-strset.cpp)
 
 
-target_link_libraries(testjl PRIVATE jsonlogic)
-target_include_directories(testjl PRIVATE ${Boost_INCLUDE_DIR} ${jsonlogic_SOURCE_DIR}/cpp/include)
+# message(STATUS "Boost_INCLUDE_DIR: ${Boost_INCLUDE_DIR}")
+target_link_libraries(testjl PRIVATE jsonlogic Boost::json faker-cxx)
+target_include_directories(testjl PRIVATE ${jsonlogic_SOURCE_DIR}/cpp/include)
 
 
 target_link_libraries(testjl-2ints PRIVATE jsonlogic faker-cxx)
 target_include_directories(
     testjl-2ints PRIVATE 
-    ${Boost_INCLUDE_DIR} 
     ${jsonlogic_SOURCE_DIR}/cpp/include
     ${faker_SOURCE_DIR}/include
     )
 
 target_compile_options(testjl-strset PRIVATE -g)
 
-target_link_libraries(testjl-strset PRIVATE jsonlogic faker-cxx)
+target_link_libraries(testjl-strset PRIVATE jsonlogic Boost::json faker-cxx)
 target_include_directories(
     testjl-strset PRIVATE 
-    ${Boost_INCLUDE_DIR} 
     ${jsonlogic_SOURCE_DIR}/cpp/include
     ${faker_SOURCE_DIR}/include
     )
