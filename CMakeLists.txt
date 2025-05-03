@@ -53,6 +53,7 @@ set(BOOST_URL
 
 
 set(BOOST_INCLUDE_LIBRARIES json)
+set(BUILD_SHARED_LIBS ON)
 
 FetchContent_Declare(
     Boost 
