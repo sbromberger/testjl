@@ -127,6 +127,7 @@ target_include_directories(
     ${faker_SOURCE_DIR}/include
 )
 
+target_compile_options(benchjl-generic PRIVATE -O3)
 target_link_libraries(benchjl-generic PRIVATE Boost::json jsonlogic faker-cxx)
 target_include_directories(
     benchjl-generic PRIVATE

@@ -23,7 +23,6 @@ int main(int argc, const char **argv) {
   if (argc > 3) {
     SEED = std::stoul(argv[3]);
   }
-  std::cout << "Hello, world!" << std::endl;
 
   faker::getGenerator().seed(SEED);
   std::vector<uint64_t> xs;
@@ -31,17 +30,19 @@ int main(int argc, const char **argv) {
   std::vector<uint64_t> ys;
   ys.reserve(N);
 
+  // Create data
   for (size_t i = 0; i < N; ++i) {
     xs.push_back(faker::number::integer(0, 255));
     ys.push_back(faker::number::integer(0, 255));
   }
 
+  // Create jsonlogic benchmark
   std::string expr_str_xy = R"({"==":[{"var": "x"},{"var": "y"}]})";
   auto jv_xy = boost::json::parse(expr_str_xy);
   boost::json::object data_obj;
 
   size_t matches = 0;
-  auto mylambda = [&] {
+  auto jl_lambda = [&] {
     matches = 0;
     for (size_t i = 0; i < N; ++i) {
       data_obj["x"] = xs[i];
@@ -57,11 +58,27 @@ int main(int argc, const char **argv) {
     }
   };
 
-  auto g = GeneralBenchmark("2ints", mylambda);
+  auto jl_bench = GeneralBenchmark("2ints-jl", jl_lambda);
 
-  auto results = g.run(N_RUNS);
-  std::cout << "matches: " << matches << std::endl;
-  results.summarize();
+  auto cpp_lambda = [&] {
+    matches = 0;
+    for (size_t i = 0; i < N; ++i) {
+      if (xs[i] == ys[i]) {
+        ++matches;
+      }
+    }
+  };
 
+  auto cpp_bench = GeneralBenchmark("2ints-cpp", cpp_lambda);
+
+  auto jl_results = jl_bench.run(N_RUNS);
+  std::cout << "jl matches: " << matches << std::endl;
+  auto cpp_results = cpp_bench.run(N_RUNS);
+  std::cout << "cpp matches: " << matches << std::endl;
+
+  jl_results.summarize();
+  cpp_results.summarize();
+  jl_results.compare_to(cpp_results);
+  cpp_results.compare_to(jl_results);
   return 0;
 }
