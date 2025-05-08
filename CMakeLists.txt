@@ -12,7 +12,7 @@ set(ALLOW_DUPLICATE_CUSTOM_TARGETS TRUE)
 if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
 cmake_policy(SET CMP0135 NEW)
 endif()
-
+set(CMAKE_OSX_SYSROOT)
 project(TestJL
     VERSION 0.01
     DESCRIPTION "Tests JSONLogic"
@@ -24,7 +24,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Only do these if this is the main project, and not if it is included through add_subdirectory
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 
-    set(CMAKE_CXX_STANDARD 20)
+    set(CMAKE_CXX_STANDARD 23)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
     
     # Let's ensure -std=c++xx instead of -std=g++xx
@@ -92,6 +92,8 @@ message(STATUS "adding executable")
 add_executable(testjl src/testjl-variant.cpp)
 add_executable(testjl-2ints src/testjl-2ints.cpp)
 add_executable(testjl-strset src/testjl-strset.cpp)
+add_executable(benchjl-2ints src/benchjl-2ints.cpp)
+add_executable(benchjl-generic src/testbench-generic.cpp)
 
 
 # message(STATUS "Boost_INCLUDE_DIR: ${Boost_INCLUDE_DIR}")
@@ -117,3 +119,18 @@ target_include_directories(
 
 target_compile_options(testjl-strset PRIVATE -g)
 
+target_link_libraries(benchjl-2ints PRIVATE jsonlogic faker-cxx)
+target_include_directories(
+    benchjl-2ints PRIVATE
+    ${PROJECT_SOURCE_DIR}/include
+    ${jsonlogic_SOURCE_DIR}/cpp/include
+    ${faker_SOURCE_DIR}/include
+)
+
+target_link_libraries(benchjl-generic PRIVATE Boost::json jsonlogic faker-cxx)
+target_include_directories(
+    benchjl-generic PRIVATE
+    ${PROJECT_SOURCE_DIR}/include
+    ${jsonlogic_SOURCE_DIR}/cpp/include
+    ${faker_SOURCE_DIR}/include
+)
