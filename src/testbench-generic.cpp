@@ -6,20 +6,32 @@
 #include <iostream>
 #include <jsonlogic/logic.hpp>
 
-const int SEED = 42;
-static const size_t N_ = 10000;
-static const int N_RUNS = 100;
-int main() {
+const int SEED_ = 42;
+static const size_t N_ = 100000;
+static const int N_RUNS_ = 10;
+int main(int argc, const char **argv) {
+  size_t N = N_;
+  if (argc > 1) {
+    N = std::stoul(argv[1]);
+  }
+  size_t N_RUNS = N_RUNS_;
+  if (argc > 2) {
+    N_RUNS = std::stoul(argv[2]);
+  }
+
+  int SEED = SEED_;
+  if (argc > 3) {
+    SEED = std::stoul(argv[3]);
+  }
   std::cout << "Hello, world!" << std::endl;
 
-  faker::setSeed(SEED);
-
+  faker::getGenerator().seed(SEED);
   std::vector<uint64_t> xs;
-  xs.reserve(N_);
+  xs.reserve(N);
   std::vector<uint64_t> ys;
-  ys.reserve(N_);
+  ys.reserve(N);
 
-  for (size_t i = 0; i < N_; ++i) {
+  for (size_t i = 0; i < N; ++i) {
     xs.push_back(faker::number::integer(0, 255));
     ys.push_back(faker::number::integer(0, 255));
   }
@@ -30,7 +42,8 @@ int main() {
 
   size_t matches = 0;
   auto mylambda = [&] {
-    for (size_t i = 0; i < N_; ++i) {
+    matches = 0;
+    for (size_t i = 0; i < N; ++i) {
       data_obj["x"] = xs[i];
       data_obj["y"] = ys[i];
       auto data = boost::json::value_from(data_obj);
