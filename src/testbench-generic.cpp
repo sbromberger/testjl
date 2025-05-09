@@ -58,7 +58,7 @@ int main(int argc, const char **argv) {
     }
   };
 
-  auto jl_bench = GeneralBenchmark("2ints-jl", jl_lambda);
+  auto jl_bench = Benchmark("2ints-jl", jl_lambda);
 
   auto cpp_lambda = [&] {
     matches = 0;
@@ -69,7 +69,7 @@ int main(int argc, const char **argv) {
     }
   };
 
-  auto cpp_bench = GeneralBenchmark("2ints-cpp", cpp_lambda);
+  auto cpp_bench = Benchmark("2ints-cpp", cpp_lambda);
 
   auto jl_results = jl_bench.run(N_RUNS);
   std::cout << "jl matches: " << matches << std::endl;

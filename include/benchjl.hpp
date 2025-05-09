@@ -10,7 +10,6 @@
 #include <numeric>
 #include <optional>
 #include <string>
-#include <thread>
 #include <vector>
 
 using BenchTiming = std::vector<double>;  // milliseconds
@@ -92,31 +91,18 @@ class BenchmarkResult {
   double stddev;
 };
 
+template <typename F>
 class Benchmark {
  public:
-  BenchmarkResult run(this auto&& self, int n_runs, auto&&... args) {
-    auto timings = std::forward<decltype(self)>(self).run_(
-        n_runs, std::forward<decltype(args)>(args)...);
-    return BenchmarkResult(self.name, timings);
-  }
-  Benchmark(const std::string& name) : name(name) {}
+  Benchmark(const std::string& name, F func) : name(name), func(func) {}
 
- protected:
-  std::string name;
-};
-
-template <typename F>
-class GeneralBenchmark : public Benchmark {
- public:
-  GeneralBenchmark(const std::string& name, F func)
-      : Benchmark(name), func(func) {}
-  BenchTiming run_(int n_runs) {
+  BenchmarkResult run(int n_runs, auto&&... args) {
     BenchTiming timings;
     std::cout << "Running Benchmark " << name << ": " << n_runs << "\n";
     for (int i = 0; i < n_runs; ++i) {
       std::chrono::steady_clock::time_point start =
           std::chrono::steady_clock::now();
-      func();
+      func(args...);
       std::chrono::steady_clock::time_point end =
           std::chrono::steady_clock::now();
 
@@ -124,62 +110,10 @@ class GeneralBenchmark : public Benchmark {
       timings.push_back(elapsed.count());
     }
     std::sort(timings.begin(), timings.end());
-    return timings;
+    return BenchmarkResult{name, timings};
   }
 
  private:
+  std::string name;
   F func;
 };
-
-// class ProblemInstanceOne : public Benchmark {
-//  public:
-//   BenchTiming run_(int n_runs, const std::string& data) {
-//     BenchTiming timings;
-//     std::cout << "Running One: " << N << ", data = " << data << "\n";
-//     for (int i = 0; i < n_runs; ++i) {
-//       std::chrono::steady_clock::time_point start =
-//           std::chrono::steady_clock::now();
-//       std::this_thread::sleep_for(std::chrono::microseconds(12345));
-//       std::chrono::steady_clock::time_point end =
-//           std::chrono::steady_clock::now();
-
-//       timings.push_back(elapsed.count());
-//     }
-//     return timings;
-//   }
-// };
-
-// private : size_t N = 0;
-// }
-// ;
-
-// class ProblemInstanceTwo : public Benchmark {
-//  public:
-//   BenchTiming run_(int data) {
-//     std::cout << "Running Two: " << get_seed() << ", data = " << data <<
-//     "\n"; return {};
-//   }
-// };
-
-// class BadProblemInstance : public Benchmark {};
-
-// // int main() {
-// //   ProblemInstanceOne one;
-// //   ProblemInstanceTwo two(66);
-// //   BadProblemInstance bad;
-
-// //   auto t1 = one.run("hello, world!");
-// //   auto t2 = two.run(99934);
-
-// //   for (auto& t : t1) {
-// //     std::cout << "Elapsed time for One: " << t.count() << "ms\n";
-// //   }
-
-// //   for (auto& t : t2) {
-// //     std::cout << "Elapsed time for Two: " << t.count() << " ms\n";
-// //   }
-// //   // This will not compile
-// //   // bad.run(99934);
-
-// //   return 0;
-// // }
